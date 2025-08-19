@@ -1,6 +1,31 @@
 import os
 from fastapi import FastAPI, Request, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
 import socketio
+
+app = FastAPI()
+
+# Permite todas las orígenes (en producción restringe a tu dominio)
+origins = [
+    "https://videolink-frontend.onrender.com",
+    # Añade más si lo necesitas
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# WebSocket endpoint
+@app.websocket("/ws/{room_id}")
+async def websocket_endpoint(websocket: WebSocket, room_id: str):
+    await websocket.accept()
+    while True:
+        data = await websocket.receive_text()
+        # Tu lógica de señalización aquí
 
 from app.db.client import get_db
 from app.api.router import api_router
