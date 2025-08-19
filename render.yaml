@@ -1,0 +1,17 @@
+services:
+  # Backend service
+  - type: web
+    name: videolink-backend
+    env: docker
+    rootDir: backend
+    plan: free
+
+  # Frontend service
+  - type: web
+    name: videolink-frontend
+    env: node
+    rootDir: frontend
+    buildCommand: yarn install && yarn build
+    startCommand: yarn preview --port $PORT --host
+    plan: free
+    staticPublishPath: dist
