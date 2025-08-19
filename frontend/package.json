@@ -1,0 +1,20 @@
+{
+  "name": "videolink-pro-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mui/material": "^6.1.2",
+    "socket.io-client": "^4.7.5",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-router-dom": "^6.26.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react-swc": "^3.1.2",
+    "vite": "^5.4.8"
+  }
+}
