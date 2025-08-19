@@ -1,17 +1,19 @@
 services:
-  # Backend service
   - type: web
     name: videolink-backend
-    env: docker
-    rootDir: backend
-    plan: free
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MONGO_URI
+        value: mongodb+srv://jflievanoh:bdoCNPdj7Ud0X4AC@emvid.e1xccmc.mongodb.net/virtual_studio?retryWrites=true&w=majority&appName=emvid
 
-  # Frontend service
   - type: web
     name: videolink-frontend
     env: node
     rootDir: frontend
-    buildCommand: yarn install && yarn build
-    startCommand: yarn preview --port $PORT --host
-    plan: free
+    buildCommand: npm install && npm run build
     staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://videolink-backend.onrender.com
