@@ -1,23 +1,20 @@
-# Use official Python image
+# Imagen base ligera con Python 3.11
 FROM python:3.11-slim
 
-# Set working directory
+# Setea el directorio de trabajo
 WORKDIR /app
 
-# Install system dependencies (optional, in case you need them)
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Python dependencies
+# Copiar requirements primero para aprovechar cache
 COPY requirements.txt .
+
+# Instalar dependencias
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project files
+# Copiar el resto del código al contenedor
 COPY . .
 
-# Expose the port Render expects
-EXPOSE 10000
+# Render asigna automáticamente $PORT, lo respetamos
+ENV PORT=10000
 
-# Start FastAPI with Uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "10000"]
+# Arrancar FastAPI con Uvicorn
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
