@@ -1,13 +1,13 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from bson.objectid import ObjectId
-import motor.motor_asyncio
+from datetime import datetime
 
 from app.db.client import get_db
-from app.auth.jwt import create_access_token
 
 router = APIRouter()
 
+# ---- Modelos ----
 class RoomCreate(BaseModel):
     name: str = Field(..., max_length=50)
 
@@ -16,6 +16,7 @@ class RoomOut(BaseModel):
     name: str
     created_at: str
 
+# ---- Endpoints ----
 @router.post("/rooms", response_model=RoomOut)
 async def create_room(payload: RoomCreate):
     db = get_db()
@@ -27,7 +28,7 @@ async def create_room(payload: RoomCreate):
     room_doc["_id"] = result.inserted_id
     return RoomOut(
         id=str(result.inserted_id),
-        name=payload.name,
+        name=room_doc["name"],
         created_at=room_doc["created_at"].isoformat()
     )
 

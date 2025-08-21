@@ -1,14 +1,19 @@
 import os
-from fastapi import FastAPI, Request, WebSocket
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 import socketio
 
+from app.db.client import get_db
+from app.api.router import api_router
+from app.sockets.manager import sio_manager
+
+# ---- Configuración FastAPI ----
 app = FastAPI()
 
-# Permite todas las orígenes (en producción restringe a tu dominio)
+# CORS (ajusta dominios en producción)
 origins = [
     "https://videolink-frontend.onrender.com",
-    # Añade más si lo necesitas
+    "http://localhost:3000",  # opcional para pruebas locales
 ]
 
 app.add_middleware(
@@ -19,52 +24,53 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# WebSocket endpoint
+# ---- WebSocket nativo (opcional, para pruebas directas) ----
 @app.websocket("/ws/{room_id}")
 async def websocket_endpoint(websocket: WebSocket, room_id: str):
     await websocket.accept()
     while True:
         data = await websocket.receive_text()
-        # Tu lógica de señalización aquí
+        # Aquí va tu lógica de señalización o pruebas
+        await websocket.send_text(f"Echo desde room {room_id}: {data}")
 
-from app.db.client import get_db
-from app.api.router import api_router
-from app.sockets.manager import sio_manager
+# ---- Socket.IO ----
+sio = socketio.AsyncServer(
+    async_mode="asgi",
+    cors_allowed_origins=origins
+)
+asgi_app = socketio.ASGIApp(sio, other_asgi_app=app)
 
-# ---- ASGI App ----
-sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins="*")
-app = FastAPI()
-sio.attach(app)
-
-# Mount REST API routes
+# ---- REST API ----
 app.include_router(api_router, prefix="/api")
 
-# Socket.io event handlers
+# ---- Eventos Socket.IO ----
 @sio.event
-async def connect(sid: str, environ):
+async def connect(sid, environ):
     await sio_manager.on_connect(sid, environ)
 
 @sio.event
-async def disconnect(sid: str):
+async def disconnect(sid):
     await sio_manager.on_disconnect(sid)
 
 @sio.event
-async def join_room(data):
-    await sio_manager.join_room(data['sid'], data['room_id'])
+async def join_room(sid, data):
+    await sio_manager.join_room(sid, data["room_id"])
 
 @sio.event
-async def offer(data):
-    await sio_manager.forward_to_peer('offer', data)
+async def offer(sid, data):
+    await sio_manager.forward_to_peer("offer", data)
 
 @sio.event
-async def answer(data):
-    await sio_manager.forward_to_peer('answer', data)
+async def answer(sid, data):
+    await sio_manager.forward_to_peer("answer", data)
 
 @sio.event
-async def ice_candidate(data):
-    await sio_manager.forward_to_peer('ice-candidate', data)
+async def ice_candidate(sid, data):
+    await sio_manager.forward_to_peer("ice-candidate", data)
 
-# Optional: expose health endpoint
+    
+
+# ---- Healthcheck ----
 @app.get("/health")
 async def health():
     return {"status": "ok"}
