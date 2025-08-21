@@ -5,7 +5,7 @@ from datetime import datetime
 
 from app.db.client import get_db
 
-api_router = APIRouter()   # <--- cambiar a api_router
+router = APIRouter()
 
 class RoomCreate(BaseModel):
     name: str = Field(..., max_length=50)
@@ -15,7 +15,7 @@ class RoomOut(BaseModel):
     name: str
     created_at: str
 
-@api_router.post("/rooms", response_model=RoomOut)
+@router.post("/rooms", response_model=RoomOut)
 async def create_room(payload: RoomCreate):
     db = get_db()
     room_doc = {
@@ -30,7 +30,7 @@ async def create_room(payload: RoomCreate):
         created_at=room_doc["created_at"].isoformat()
     )
 
-@api_router.get("/rooms/{room_id}", response_model=RoomOut)
+@router.get("/rooms/{room_id}", response_model=RoomOut)
 async def get_room(room_id: str):
     db = get_db()
     room = await db.rooms.find_one({"_id": ObjectId(room_id)})

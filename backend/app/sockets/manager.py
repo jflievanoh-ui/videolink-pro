@@ -15,22 +15,40 @@ class SocketManager:
         print(f"[SOCKET] Connected {sid}")
 
     async def on_disconnect(self, sid: str):
-        for room in list(self.rooms.values()):
-            if sid in room:
-                room.remove(sid)
+        for room_id, members in list(self.rooms.items()):
+            if sid in members:
+                members.remove(sid)
+                if not members:  # limpiar si la sala queda vacía
+                    del self.rooms[room_id]
         print(f"[SOCKET] Disconnected {sid}")
 
     async def join_room(self, sid: str, room_id: str):
+        from app.main import sio  # import local para evitar circular imports
         self.rooms[room_id].add(sid)
-        await sio.emit('joined', {"room": room_id}, to=sid)
+        print(f"[SOCKET] {sid} joined room {room_id}")
+        await sio.emit("joined", {"room": room_id, "sid": sid}, to=sid)
 
     async def forward_to_peer(self, event_type: str, data: dict):
         """
         `data` must contain:
-          - sid: recipient's socket id
+          - room_id: str
+          - target: recipient's socket id
           - payload: SDP or ICE object
         """
-        target_sid = data['sid']
-        await sio.emit(event_type, data['payload'], to=target_sid)
+        from app.main import sio  # import local para evitar circular imports
+        room_id = data.get("room_id")
+        target_sid = data.get("target")
+        payload = data.get("payload")
 
+        if not room_id or not target_sid or not payload:
+            print(f"[SOCKET] Invalid forward data: {data}")
+            return
+
+        if target_sid in self.rooms.get(room_id, []):
+            await sio.emit(event_type, payload, to=target_sid)
+            print(f"[SOCKET] Forwarded {event_type} to {target_sid} in room {room_id}")
+        else:
+            print(f"[SOCKET] Target {target_sid} not in room {room_id}")
+
+# Global instance
 sio_manager = SocketManager()

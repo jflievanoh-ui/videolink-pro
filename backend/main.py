@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import socketio
 
 from app.db.client import get_db
-from app.api.router import api_router
+from app.api.router import api_router   # <--- ahora sí api_router
 from app.sockets.manager import sio_manager
 
 # ---- Configuración FastAPI ----
@@ -24,7 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ---- WebSocket nativo (opcional, para pruebas directas) ----
+# ---- WebSocket nativo (pruebas directas) ----
 @app.websocket("/ws/{room_id}")
 async def websocket_endpoint(websocket: WebSocket, room_id: str):
     await websocket.accept()
@@ -41,7 +41,7 @@ sio = socketio.AsyncServer(
 asgi_app = socketio.ASGIApp(sio, other_asgi_app=app)
 
 # ---- REST API ----
-app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix="/api")   # <--- incluye tus endpoints
 
 # ---- Eventos Socket.IO ----
 @sio.event
@@ -67,8 +67,6 @@ async def answer(sid, data):
 @sio.event
 async def ice_candidate(sid, data):
     await sio_manager.forward_to_peer("ice-candidate", data)
-
-    
 
 # ---- Healthcheck ----
 @app.get("/health")

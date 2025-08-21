@@ -1,16 +1,23 @@
-import { useEffect, useRef } from 'react';
-import io from 'socket.io-client';
+import { useEffect, useState } from "react";
+import { io } from "socket.io-client";
 
-export function useSocket(url = process.env.VITE_BACKEND_URL) {
-  const socketRef = useRef(null);
+export function useSocket() {
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    socketRef.current = io(url, { transports: ['websocket'] });
+    // Conectar al backend
+    const s = io(import.meta.env.VITE_BACKEND_URL, {
+      transports: ["websocket"], // fuerza WebSocket
+      autoConnect: true,
+    });
 
+    setSocket(s);
+
+    // Limpiar conexión al desmontar
     return () => {
-      if (socketRef.current) socketRef.current.disconnect();
+      s.disconnect();
     };
-  }, [url]);
+  }, []);
 
-  return socketRef.current;
+  return socket;
 }

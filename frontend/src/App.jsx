@@ -1,6 +1,8 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import RoomManager from './components/RoomManager';
-import VideoGrid from './components/VideoGrid';
+// src/App.jsx
+
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import RoomManager from "./components/RoomManager";
+import VideoGrid from "./components/VideoGrid";
 
 export default function App() {
   return (
