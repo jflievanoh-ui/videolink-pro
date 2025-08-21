@@ -2,15 +2,18 @@ services:
   - type: web
     name: videolink-backend
     env: python
+    rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: MONGO_URI
-        value: mongodb+srv://jflievanoh:bdoCNPdj7Ud0X4AC@emvid.e1xccmc.mongodb.net/virtual_studio?retryWrites=true&w=majority&appName=emvid
+        sync: false   # define en el dashboard por seguridad
+      - key: PORT
+        value: 8000
 
   - type: web
     name: videolink-frontend
-    env: node
+    env: static
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
