@@ -7,13 +7,11 @@ services:
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: MONGO_URI
-        sync: false   # define en el dashboard por seguridad
-      - key: PORT
-        value: 8000
+        value: mongodb+srv://jflievanoh:bdoCNPdj7Ud0X4AC@emvid.e1xccmc.mongodb.net/virtual_studio?retryWrites=true&w=majority&appName=emvid
 
   - type: web
     name: videolink-frontend
-    env: static
+    env: node
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
