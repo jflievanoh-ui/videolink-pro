@@ -1,23 +1,23 @@
+// src/hooks/useSocket.js
 import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
+import socket from "../socket";
 
 export function useSocket() {
-  const [socket, setSocket] = useState(null);
+  const [isConnected, setIsConnected] = useState(socket.connected);
 
   useEffect(() => {
-    // Conectar al backend
-    const s = io(import.meta.env.VITE_BACKEND_URL, {
-      transports: ["websocket"], // fuerza WebSocket
-      autoConnect: true,
-    });
+    const onConnect = () => setIsConnected(true);
+    const onDisconnect = () => setIsConnected(false);
 
-    setSocket(s);
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
 
-    // Limpiar conexión al desmontar
+    // Limpiar al desmontar
     return () => {
-      s.disconnect();
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
     };
   }, []);
 
-  return socket;
+  return { socket, isConnected };
 }
